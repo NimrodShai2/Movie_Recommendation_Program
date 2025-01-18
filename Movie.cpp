@@ -1,4 +1,3 @@
-
 #include "Movie.h"
 
 #define HASH_START 17
@@ -66,6 +65,17 @@ bool Movie::operator<(const Movie &other) const {
  */
 std::ostream &Movie::operator<<(std::ostream &os) const {
     os << name_ << " (" << year_ << ")\n";
+    return os;
+}
+
+/**
+ * Print the movie to the output stream
+ * @param os output stream
+ * @param movie movie to print
+ * @return output stream
+ */
+std::ostream &operator<<(std::ostream &os, const Movie &movie) {
+    os << movie.name_ << " (" << movie.year_ << ")\n";
     return os;
 }
 

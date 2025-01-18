@@ -41,6 +41,8 @@ public:
 
     std::ostream &operator<<(std::ostream &os) const;
 
+    friend std::ostream &operator<<(std::ostream &os, const Movie &movie);
+
 };
 
 

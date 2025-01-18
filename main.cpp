@@ -1,6 +1,10 @@
 #include <iostream>
 
+#include "Movie.h"
+
+#define EXIT_SUCCESS_TEST 0
+#define EXIT_FAIL_TEST 2
+
 int main() {
-    std::cout << "Hello, World!" << std::endl;
-    return 0;
+    return EXIT_SUCCESS_TEST;
 }

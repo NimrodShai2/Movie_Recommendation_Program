@@ -18,7 +18,7 @@ class User {
 private:
     rank_map ranks_;
     std::string name_;
-    std::unique_ptr<RecommendationSystem> rs_;
+    std::shared_ptr<RecommendationSystem> rs_;
 
 public:
 

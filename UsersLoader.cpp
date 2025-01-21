@@ -21,18 +21,17 @@ UsersLoader::load_users(const std::string &users_file_path, std::unique_ptr<Reco
         movies.emplace_back(name, std::stoi(year));
     }
     // Read the rest of the lines - the users. Each line is in the format "user_name rate rate rate ...". An index
-    // NA means that the user didn't rate the movie in the index.
+    // with the string "NA" means that the user didn't rate the movie in the index.
     while (std::getline(file, line)) {
-        std::istringstream iss(line);
+        std::istringstream iss2(line);
         std::string user_name;
-        iss >> user_name;
+        iss2 >> user_name;
         rank_map ranks;
-        for (int i = 0; i < movies.size(); ++i) {
-            double rate;
-            iss >> rate;
-            if (rate != -1) {
-                sp_movie movie = std::make_shared<Movie>(movies[i].first, movies[i].second);
-                ranks[movie] = rate;
+        for (auto &movie: movies) {
+            std::string rate;
+            iss2 >> rate;
+            if (rate != "NA") {
+                ranks[rs->get_movie(movie.first, movie.second)] = std::stod(rate);
             }
         }
         users.emplace_back(user_name, ranks, std::move(rs));

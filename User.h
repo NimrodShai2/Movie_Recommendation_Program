@@ -13,10 +13,11 @@
 
 typedef std::unordered_map<sp_movie, double, hash_func, equal_func> rank_map;
 
+class RecommendationSystem;
 
 class User {
 private:
-    rank_map ranks_;
+    rank_map ranks_{0, sp_movie_hash, sp_movie_equal};
     std::string name_;
     std::shared_ptr<RecommendationSystem> rs_;
 
@@ -78,6 +79,8 @@ public:
     const rank_map &get_ranks() const;
 
     std::ostream &operator<<(std::ostream &os) const;
+
+    friend std::ostream &operator<<(std::ostream &os, const User &user);
 
 };
 

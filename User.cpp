@@ -5,7 +5,8 @@
 User::User(std::string name, rank_map ranks,
            std::unique_ptr<RecommendationSystem> rs) : name_(std::move(name)),
                                                        ranks_(std::move(ranks)),
-                                                       rs_(std::move(rs)) {}
+                                                       rs_(std::move(rs)) {
+}
 
 
 const std::string &User::get_name() const {
@@ -35,10 +36,15 @@ sp_movie User::get_rs_recommendation_by_cf(int k) {
 }
 
 double User::get_rs_prediction_score_for_movie(const std::string &name, int year, int k) {
-    return rs_->predict_movie_score(name, year, *this);
+    sp_movie movie = rs_->get_movie(name, year);
+    return rs_->predict_movie_score(*this, movie, k);
 }
 
 std::ostream &User::operator<<(std::ostream &os) const {
     os << "name: " << name_ << std::endl;
     os << rs_ << std::endl;
+}
+
+std::ostream &operator<<(std::ostream &os, const User &user) {
+    return user.operator<<(os);
 }

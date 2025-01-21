@@ -1,6 +1,8 @@
 #include "RecommendationSystem.h"
+#include "Movie.h"
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 
 
 double cosine_similarity(const std::vector<double> &v1, const std::vector<double> &v2) {
@@ -25,8 +27,7 @@ double norm(const std::vector<double> &v) {
 
 
 sp_movie RecommendationSystem::get_movie(const std::string &name, int year) {
-    sp_movie movie = std::make_shared<Movie>(name, year);
-    auto it = movies_.find(movie);
+    auto it = movies_.find(std::make_shared<Movie>(name, year));
     if (it == movies_.end()) {
         return nullptr;
     }
@@ -43,6 +44,13 @@ sp_movie RecommendationSystem::add_movie_to_rs(const std::string &name, int year
 
 std::ostream &RecommendationSystem::operator<<(std::ostream &os) {
     for (const auto &movie: movies_) {
+        os << *movie;
+    }
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const RecommendationSystem &rs) {
+    for (const auto &movie: rs.movies_) {
         os << *movie;
     }
     return os;
@@ -78,6 +86,10 @@ sp_movie RecommendationSystem::recommend_by_content(const User &user_rankings) {
     sp_movie best_movie;
     double best_similarity = -1;
     for (const auto &movie: movies_) {
+        // if the user has already ranked the movie, skip it
+        if (user_rankings.get_ranks().find(movie) != user_rankings.get_ranks().end()) {
+            continue;
+        }
         double similarity = cosine_similarity(user_preferences, movie_features_[movie]);
         if (similarity > best_similarity) {
             best_similarity = similarity;
@@ -85,4 +97,53 @@ sp_movie RecommendationSystem::recommend_by_content(const User &user_rankings) {
         }
     }
     return best_movie;
+}
+
+
+double RecommendationSystem::predict_movie_score(const User &user_rankings, const sp_movie &movie, int k) {
+    auto features = movie_features_[movie];
+    // Find top k movies
+    std::vector<std::pair<sp_movie, double>> top_k;
+    // calculate the similarity between the movie and the user's rankings
+    for (const auto &user_movie: user_rankings.get_ranks()) {
+        double similarity = cosine_similarity(features, movie_features_[user_movie.first]);
+        top_k.emplace_back(user_movie.first, similarity);
+    }
+    // sort the vector by similarity, in descending order
+    std::sort(top_k.begin(), top_k.end(),
+              [](const std::pair<sp_movie, double> &a, const std::pair<sp_movie, double> &b) {
+                  return a.second > b.second;
+              });
+    // Resize the vector to k
+    if (top_k.size() > k) {
+        top_k.resize(k);
+    }
+    // calculate the predicted score
+    double predicted_score = 0;
+    double sum_of_similarities = 0;
+    for (const auto &m: top_k) {
+        predicted_score += user_rankings.get_ranks().at(m.first) * m.second;
+        sum_of_similarities += m.second;
+    }
+    return predicted_score / sum_of_similarities;
+}
+
+sp_movie RecommendationSystem::recommend_by_cf(const User &user_rankings, int k) {
+    // Find top k movies
+    std::vector<std::pair<sp_movie, double>> top_k;
+    for (const auto &movie: movies_) {
+        // if the user has already ranked the movie, skip it
+        if (user_rankings.get_ranks().find(movie) != user_rankings.get_ranks().end()) {
+            continue;
+        }
+        double similarity = predict_movie_score(user_rankings, movie, k);
+        top_k.emplace_back(movie, similarity);
+    }
+    // sort the vector by similarity, in descending order
+    std::sort(top_k.begin(), top_k.end(),
+              [](const std::pair<sp_movie, double> &a, const std::pair<sp_movie, double> &b) {
+                  return a.second > b.second;
+              });
+    // return the movie with the highest similarity
+    return top_k[0].first;
 }

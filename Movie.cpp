@@ -55,7 +55,10 @@ int Movie::get_year() const {
  * and the name of this movie is lexicographically smaller than the other movie
  */
 bool Movie::operator<(const Movie &other) const {
-    return year_ < other.year_ || (year_ == other.year_ && name_ < other.name_);
+    if (year_ != other.year_) {
+        return year_ < other.year_;
+    }
+    return name_ < other.name_;
 }
 
 /**

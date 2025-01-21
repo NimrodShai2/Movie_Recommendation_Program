@@ -11,20 +11,34 @@
 
 typedef std::unordered_map<sp_movie, std::vector<double>, hash_func, equal_func> movie_features_map;
 
+class User;
+
+/**
+ * A comparator for movies
+ */
+struct MovieComparator {
+    bool operator()(const sp_movie &m1, const sp_movie &m2) const {
+        return *m1 < *m2; // Use Movie::operator< to compare
+    }
+};
+
+
 class RecommendationSystem {
 private:
     /// A binary search tree of movies with a vector of features
-    std::set<sp_movie> movies_;
+    std::set<sp_movie, MovieComparator> movies_;
 
     /// An unordered map of movies with a vector of features
-    movie_features_map movie_features_;
+    movie_features_map movie_features_{0, sp_movie_hash, sp_movie_equal};
 
 public:
+
+
     /**
      * returns a movie from the recommendation system
      * @param name the name of the movie
      * @param year the year the movie was made
-     * @return the movie
+     * @return the movie, or nullptr if it doesn't exist
      */
     sp_movie get_movie(const std::string &name, int year);
 
@@ -51,6 +65,8 @@ public:
     sp_movie recommend_by_cf(const User &user_rankings, int k);
 
     std::ostream &operator<<(std::ostream &os);
+
+    friend std::ostream &operator<<(std::ostream &os, const RecommendationSystem &rs);
 };
 
 
